@@ -147,7 +147,10 @@
 .panel[data-marketing="true"] {
   --accent: #f2711c;
   --accent-2: #ff6a00;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  /* Slimmer left/right padding than the regional default, so the cards get the
+     width back; vertical padding unchanged. */
+  padding: clamp(12px, 2vh, 28px) clamp(8px, 1.2vw, 22px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -163,17 +166,16 @@
    Awards.info column instead of ballooning to fill half a screen. */
 .panel[data-marketing="true"] .regionList {
   grid-auto-rows: unset;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-rows: minmax(0, 1fr) minmax(0, 3fr);
+  /* Awards.info (last column) is wider than the three lead columns, taking the
+     room reclaimed from the trimmed padding, so its four cards get more width. */
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.3fr);
+  grid-template-rows: minmax(0, 0.8fr) minmax(0, 3fr);
   gap: clamp(10px, 1vw, 24px);
 }
 
-/* Awards.info fills its own column top to bottom (four cards); the three lead
-   columns sit in the top row and share one spend card beneath them (see .spendBar). */
-.panel[data-marketing="true"] .region[data-span="true"] {
-  grid-column: 4;
-  grid-row: 1 / -1;
-}
+/* All four category columns sit in the bottom row, the same height; the spanning
+   card takes the whole top row above them. Awards.info's four cards shrink to fit
+   that shared column height. */
 
 /* Cards stack down each lead column: a compact leads/clicks card over the CPL
    card, which takes the rest. */
@@ -217,12 +219,23 @@
 /* The card spanning the three lead columns' bottom row: dashboard title on the
    left, the week's spend figures on the right. */
 .panel[data-marketing="true"] .spendBar {
-  grid-column: 1 / 4;
+  grid-column: 1 / -1;
   grid-row: 1;
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: stretch;
   gap: 0;
+  /* Let the notes chip's hover popover escape the card instead of being clipped. */
+  overflow: visible;
+}
+
+/* The notes chip lives in the spanning card's top-right corner. */
+.panel[data-marketing="true"] .spendNotice {
+  position: absolute;
+  top: clamp(6px, 1vh, 12px);
+  right: clamp(6px, 1vw, 14px);
+  z-index: 6;
 }
 
 /* Title fills the left, spend fills the right; a single rule divides them, and
@@ -1130,4 +1143,66 @@
 .awNum[data-zero="true"] {
   color: var(--text-muted);
   font-weight: 500;
+}
+
+/* ------------------------------------------------ marketing: TV text sizes */
+
+/* Bigger type across the marketing dashboard for legibility on a TV wallboard.
+   Sized in vh/vw so it still scales to the fit-to-screen layout; the compact
+   tiles keep overflow:hidden, so anything tight clips rather than breaks the
+   grid. Scoped to marketing — the money dashboard is untouched. */
+.panel[data-marketing="true"] .regionLabel {
+  font-size: clamp(18px, 2.7vh, 30px);
+}
+.panel[data-marketing="true"] .mCatUnit {
+  font-size: clamp(11px, 1.4vh, 16px);
+}
+.panel[data-marketing="true"] .tile[data-compact="true"] .tileLabel {
+  font-size: clamp(15px, 2.5vh, 28px);
+}
+.panel[data-marketing="true"] .tile[data-compact="true"] .tileValue {
+  font-size: clamp(26px, 3.9vh, 60px);
+}
+.panel[data-marketing="true"] .tileSub {
+  font-size: clamp(13px, 1.3vw, 20px);
+}
+.panel[data-marketing="true"] .badge {
+  font-size: clamp(13px, 1.05vw, 19px);
+}
+.panel[data-marketing="true"] .week {
+  font-size: clamp(14px, 1.05vw, 20px);
+}
+.panel[data-marketing="true"] .spendItemLabel {
+  font-size: clamp(14px, 2.1vh, 23px);
+}
+.panel[data-marketing="true"] .spendItemValue {
+  font-size: clamp(22px, 3.6vh, 52px);
+}
+.panel[data-marketing="true"] .spendBar[data-compact="true"] .tileLabel {
+  font-size: clamp(16px, 2.7vh, 32px);
+}
+
+/* ------------------------------ marketing: Awards.info tighten (4 cards) */
+
+/* Awards.info fits four cards where the others fit two and now shares their
+   height, so — with the bumped TV text — its cards need tighter spacing and a
+   step-smaller type and donut to fit without clipping or overlapping. */
+.panel[data-marketing="true"] .regionTopRow[data-cards="4"] {
+  gap: clamp(4px, 0.6vh, 10px);
+}
+.panel[data-marketing="true"] .regionTopRow[data-cards="4"] .tile[data-compact="true"] {
+  padding: clamp(3px, 0.7vh, 11px) clamp(8px, 1vw, 16px);
+  gap: clamp(1px, 0.3vh, 4px);
+}
+.panel[data-marketing="true"] .regionTopRow[data-cards="4"] .tile[data-compact="true"] .tileLabel {
+  font-size: clamp(15px, 2.5vh, 28px);
+}
+.panel[data-marketing="true"] .regionTopRow[data-cards="4"] .tile[data-compact="true"] .tileValue {
+  font-size: clamp(25px, 3.8vh, 58px);
+}
+.panel[data-marketing="true"] .regionTopRow[data-cards="4"] .tileSub {
+  font-size: clamp(13px, 1.4vw, 21px);
+}
+.panel[data-marketing="true"] .regionTopRow[data-cards="4"] .donut {
+  max-height: clamp(72px, 16.5vh, 138px);
 }

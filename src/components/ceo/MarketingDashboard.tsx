@@ -83,22 +83,15 @@ export function MarketingDashboard({
     >
       <div className={styles.regionList}>
         {categories.map((category) => (
-          <CategoryRow
-            key={category.key}
-            category={category}
-            asOfDay={asOfDay}
-            headerRight={
-              category.qualityTarget !== null && hasNotice ? <NoticeChip notices={notices} /> : undefined
-            }
-          />
+          <CategoryRow key={category.key} category={category} asOfDay={asOfDay} />
         ))}
-        <SpendBar title={"Paid leads and cost\nper lead by category"} subtitle={subtitle} categories={categories} />
+        <SpendBar
+          title={"Paid leads and cost\nper lead by category"}
+          subtitle={subtitle}
+          categories={categories}
+          notices={hasNotice ? notices : []}
+        />
       </div>
-
-      <footer className={styles.sourceNote}>
-        All figures in SGD · weeks run Friday to Thursday, Asia/Singapore · Sales is measured in clicks and cost
-        per click, the others in leads and cost per lead · targets are placeholders
-      </footer>
 
       <DashboardControls>
         <Link
@@ -189,10 +182,16 @@ function CategoryRow({
     `Week target ${formatLeads(category.primaryTarget)} ${noun}`,
   ];
 
-  const costSub = [
-    `Target ${formatCostPerLead(category.costTarget)}`,
-    cost.overrun !== null ? `${formatSignedPercent(cost.overrun, 1)} vs target` : `Awaiting ${noun}`,
-  ];
+  // Awards.info shows its cost cards' donut sideways beside the reading, so the
+  // "vs target" line would sit right next to the same figure on the ring — drop it
+  // there and keep only the target amount (which the donut doesn't show).
+  const costSub =
+    category.qualityTarget !== null
+      ? [`Target ${formatCostPerLead(category.costTarget)}`]
+      : [
+          `Target ${formatCostPerLead(category.costTarget)}`,
+          cost.overrun !== null ? `${formatSignedPercent(cost.overrun, 1)} vs target` : `Awaiting ${noun}`,
+        ];
 
   // Quality leads are a metric in their own right, not a footnote — they get
   // their own pair of cards, judged against their own targets.
@@ -241,7 +240,7 @@ function CategoryRow({
       <div className={styles.regionTopRow} data-cards={quality ? "4" : "2"}>
         <StatTile
           compact
-          label={isLeads ? "Paid leads generated this week" : "Clicks generated this week"}
+          label={isLeads ? "Paid Leads Generated This Week" : "Clicks generated this week"}
           value={formatLeads(primary.actual)}
           rag={primary.rag}
           note={primary.note}
@@ -261,7 +260,7 @@ function CategoryRow({
           <>
             <StatTile
               compact
-              label="Quality leads this week"
+              label="Quality Leads This Week"
               value={formatLeads(quality.actual)}
               rag={quality.rag}
               note={quality.note}
@@ -274,16 +273,11 @@ function CategoryRow({
             />
             <StatTile
               compact
-              label="Cost per quality lead vs target"
+              label="Cost Per Quality Lead vs Target"
               value={qualityCost.actual === null ? "—" : formatCostPerLead(qualityCost.actual)}
               rag={qualityCost.rag}
               note={qualityCost.note}
-              subLines={[
-                `Target ${formatCostPerLead(category.qualityCostTarget!)}`,
-                qualityCost.overrun !== null
-                  ? `${formatSignedPercent(qualityCost.overrun, 1)} vs target`
-                  : "Awaiting quality leads",
-              ]}
+              subLines={[`Target ${formatCostPerLead(category.qualityCostTarget!)}`]}
               chart={
                 <DonutChart
                   ratio={qualityCost.actual === null ? null : qualityCost.actual / qualityCost.target}
@@ -308,20 +302,27 @@ function SpendBar({
   title,
   subtitle,
   categories,
+  notices,
 }: {
   title: string;
   subtitle: string;
   categories: CategoryTotals[];
+  notices: string[];
 }) {
   const total = categories.reduce((sum, c) => sum + (c.spend ?? 0), 0);
   return (
     <section className={`${styles.tile} ${styles.spendBar}`} data-compact="true" data-rag="neutral">
+      {notices.length > 0 && (
+        <div className={styles.spendNotice}>
+          <NoticeChip notices={notices} />
+        </div>
+      )}
       <div className={styles.spendBarTitle}>
         <h1 className={styles.spendBarHeading}>{title}</h1>
         <div className={styles.week}>{subtitle}</div>
       </div>
       <div className={styles.spendGroup}>
-        <div className={styles.tileLabel}>Ad spend this week</div>
+        <div className={styles.tileLabel}>Ad Spent This Week</div>
         <div className={styles.spendCols}>
           {categories.map((c) => (
             <div key={c.key} className={styles.spendItem}>
