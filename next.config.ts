@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      { source: "/dashboard/ceo-money", destination: "/dashboard/ceo/money", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;
