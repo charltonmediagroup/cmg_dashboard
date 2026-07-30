@@ -16,7 +16,7 @@ export const MARKETING_CONFIG: MarketingConfig = {
   leadsGreenAt: 1.0,
   leadsAmberAt: 0.85,
 
-  // Cost per lead: green at or below target, yellow up to 15% over, red beyond.
+  // Cost per lead: green at or below target, yellow up to 25% over, red beyond.
   cplWarningOverrun: 0,
-  cplCriticalOverrun: 0.15,
+  cplCriticalOverrun: 0.25,
 };

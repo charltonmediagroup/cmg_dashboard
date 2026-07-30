@@ -52,6 +52,8 @@ export interface ColumnMap {
   status: number;
   paidOn: number;
   cash: number;
+  /** The award/event this invoice belongs to (column F in every tab). */
+  award: number;
 }
 
 /** The one status whose invoices have actually been collected. */
@@ -107,6 +109,8 @@ export interface RegisterRow {
   cashSgd: number;
   currency: string;
   status: string;
+  /** Column F: the award/event this invoice was raised for. Empty if blank. */
+  award: string;
 }
 
 export interface InvoiceRegister {
@@ -199,6 +203,29 @@ export function cellToPaymentDay(cell: Cell): EpochDay | null {
     if (parsed === null) continue;
     const day = toEpochDay(parsed);
     if (latest === null || day > latest) latest = day;
+  }
+  return latest;
+}
+
+/**
+ * The most recent day an invoice was *issued* — the latest date in column A.
+ * Rows dated after `notAfter` are ignored, so a fat-fingered future date can't
+ * drag the whole wall into an empty week. Returns null when the register has no
+ * usable issue date at all.
+ *
+ * This is what lets the page track "the latest week on the sheet" instead of the
+ * calendar: the week containing this day is the freshest one that billed. Payment
+ * dates are deliberately not considered — stragglers paying an old invoice should
+ * not advance the reporting week past the last week any business was booked.
+ */
+export function latestIssueDay(
+  register: InvoiceRegister,
+  notAfter: EpochDay = Number.POSITIVE_INFINITY,
+): EpochDay | null {
+  let latest: EpochDay | null = null;
+  for (const row of register.rows) {
+    if (row.day > notAfter) continue;
+    if (latest === null || row.day > latest) latest = row.day;
   }
   return latest;
 }
@@ -468,6 +495,7 @@ export async function loadInvoiceRegister(
           cashSgd: paid ? sgd - 10 : 0,
           currency: i.currency,
           status: paid ? "PAID" : i.status === "void" ? "VOID" : "UNPAID",
+          award: "",
         };
       }),
       source: "sample",
@@ -504,6 +532,7 @@ export async function loadInvoiceRegister(
     const cash = cellToAmount(line[col.cash]);
     const paidOn = cellToPaymentDay(line[col.paidOn]);
     const status = normalizeStatus(String(line[col.status] ?? ""));
+    const award = String(line[col.award] ?? "").trim();
 
     if (status === "OTHER") otherStatuses++;
 
@@ -519,7 +548,7 @@ export async function loadInvoiceRegister(
       // Never guess. An unrecognised currency contributes nothing and is
       // reported — silently treating HKD as SGD would overstate it six-fold.
       unknownCurrencies.set(code, (unknownCurrencies.get(code) ?? 0) + 1);
-      rows.push({ day, paidOn, sgd: 0, cashSgd: 0, currency: code, status });
+      rows.push({ day, paidOn, sgd: 0, cashSgd: 0, currency: code, status, award });
       continue;
     }
 
@@ -542,6 +571,7 @@ export async function loadInvoiceRegister(
       cashSgd: (cash ?? 0) * rate,
       currency: code,
       status,
+      award,
     });
   }
 

@@ -115,6 +115,237 @@
   min-height: 0;
 }
 
+/* Cash and revenue share the top row; the overdue chart spans full width beneath
+   them and takes the larger share of the height, since a line chart reads better
+   with room. */
+.regionGrid {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: clamp(10px, 1.6vh, 22px);
+  min-height: 0;
+}
+
+.regionTopRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(14px, 1.4vw, 24px);
+  min-height: 0;
+}
+
+/* A category that also tracks quality leads carries four cards on its row. */
+.regionTopRow[data-cards="4"] {
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(10px, 1vw, 18px);
+}
+
+/* No masthead on marketing — the title moved into the spanning card — so the panel
+   is just the region grid over the footer. An orange accent token rides here too:
+   identity only (the title), kept clear of the RAG amber so it is never read as a
+   warning. Brighter in dark mode where it carries on a dark surface. */
+/* --accent is the orange (gradient end); --accent-2 the punchier, more saturated
+   orange it starts from — vivid, not dark. Brighter overall in dark mode. */
+.panel[data-marketing="true"] {
+  --accent: #f2711c;
+  --accent-2: #ff6a00;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  .panel[data-marketing="true"] {
+    --accent: #ff9a4d;
+    --accent-2: #ff7a1f;
+  }
+}
+
+/* Marketing lays its four categories out as four columns — one per category —
+   rather than a 2×2 of blocks. Every column is sized as if it held four cards, so
+   a two-card category's cards match the compact size they have in the four-card
+   Awards.info column instead of ballooning to fill half a screen. */
+.panel[data-marketing="true"] .regionList {
+  grid-auto-rows: unset;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) minmax(0, 3fr);
+  gap: clamp(10px, 1vw, 24px);
+}
+
+/* Awards.info fills its own column top to bottom (four cards); the three lead
+   columns sit in the top row and share one spend card beneath them (see .spendBar). */
+.panel[data-marketing="true"] .region[data-span="true"] {
+  grid-column: 4;
+  grid-row: 1 / -1;
+}
+
+/* Cards stack down each lead column: a compact leads/clicks card over the CPL
+   card, which takes the rest. */
+.panel[data-marketing="true"] .regionTopRow {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 2fr);
+  gap: clamp(8px, 1vh, 16px);
+}
+
+/* Awards.info carries four cards, all the same height — leads, cost, quality
+   leads, quality cost — each with its donut sideways. */
+.panel[data-marketing="true"] .regionTopRow[data-cards="4"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+
+/* In the two-card columns the CPL card carries its donut below the reading,
+   centred and at full size. Awards.info (four cards) is excluded, so its cost
+   cards keep the base sideways layout — donut on the right, beside the text. */
+.panel[data-marketing="true"] .regionTopRow:not([data-cards="4"]) .tile[data-haschart="true"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label"
+    "value"
+    "sub"
+    "chart"
+    "foot";
+}
+
+.panel[data-marketing="true"] .regionTopRow:not([data-cards="4"]) .tile[data-haschart="true"] .tileBullet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel[data-marketing="true"] .regionTopRow:not([data-cards="4"]) .tile[data-haschart="true"] .donut {
+  max-height: clamp(90px, 22vh, 200px);
+}
+
+/* The card spanning the three lead columns' bottom row: dashboard title on the
+   left, the week's spend figures on the right. */
+.panel[data-marketing="true"] .spendBar {
+  grid-column: 1 / 4;
+  grid-row: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+}
+
+/* Title fills the left, spend fills the right; a single rule divides them, and
+   both centre in the card's height so no space is wasted. */
+.panel[data-marketing="true"] .spendBarTitle {
+  /* Only as wide as the two title lines need; the separator sits just after it. */
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2px, 0.8vh, 10px);
+  padding-right: clamp(16px, 2.6vw, 48px);
+  min-width: 0;
+}
+
+.panel[data-marketing="true"] .spendBarHeading {
+  margin: 0;
+  /* Oswald, a condensed display face self-hosted via next/font, with a system
+     condensed fallback while it loads (or if it fails). */
+  font-family: var(--font-title), "Bahnschrift", "Arial Narrow", "Helvetica Neue", system-ui, sans-serif;
+  font-size: clamp(21px, 2.5vw, 46px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+  /* Honour the newline in the title so it breaks exactly where intended. */
+  white-space: pre-line;
+  /* An orange gradient clipped into the letters. */
+  background: linear-gradient(115deg, var(--accent-2), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent); /* fallback if background-clip: text is unsupported */
+}
+
+.panel[data-marketing="true"] .spendGroup {
+  /* Takes all the space left once the title is sized to its content. */
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(12px, 3vh, 34px);
+  padding-left: clamp(16px, 2.6vw, 48px);
+  border-left: 1px solid var(--border);
+  min-width: 0;
+}
+
+.panel[data-marketing="true"] .spendCols {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(8px, 1.2vw, 24px);
+  align-items: baseline;
+}
+
+.spendItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.spendItemLabel {
+  font-size: clamp(12px, 1.7vh, 18px);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.spendItem[data-total="true"] .spendItemLabel {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.spendItemValue {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(18px, 2.9vh, 40px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Categories are told apart by their column and a prominent header, not by a hue
+   each. That keeps colour on this page meaning one thing only — RAG state, on the
+   donut ring, the badge and the leads number. So the card's left edge is neutral,
+   not the RAG border it used to carry. */
+.panel[data-marketing="true"] .tile {
+  border-left: 1px solid var(--border);
+}
+
+/* Each column titled like a section header, with a rule beneath, so the four read
+   as distinct without a per-category colour. The header is a row, so a column can
+   carry something at its right — the notes chip on Awards.info. */
+.panel[data-marketing="true"] .regionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(6px, 0.8vw, 12px);
+  padding-bottom: clamp(3px, 0.6vh, 8px);
+  border-bottom: 2px solid var(--border);
+}
+.panel[data-marketing="true"] .regionLabel {
+  font-size: clamp(15px, 2vh, 22px);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* The headline number stands out by weight and tonal contrast, not colour: it is
+   the heaviest, darkest thing on the card, while its label sits back muted. RAG
+   still reads from the donut and from the badge's glyph + word below. */
+.panel[data-marketing="true"] .tile .tileValue {
+  /* System sans (inherited) with tabular figures: minimal and clean, digits still
+     line up. No monospace "code" look, no web-font dependency. */
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.panel[data-marketing="true"] .tile .tileLabel {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+
 .regionLabel {
   font-size: clamp(12px, 1.4vh, 16px);
   font-weight: 600;
@@ -134,11 +365,244 @@
 }
 
 .tile[data-compact="true"] .tileValue {
-  font-size: clamp(18px, 2.6vh, 40px);
+  font-size: clamp(24px, 3.6vh, 54px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .tile[data-compact="true"] .tileLabel {
-  font-size: clamp(11px, 1.4vh, 15px);
+  font-size: clamp(13px, 2vh, 21px);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* -------------------------------------------------------------- donut */
+
+/* A card carrying a donut lays out sideways: the reading (label, value,
+   sub-lines) down the left, the ring beside it. Stacking them vertically left
+   the ring fighting four other rows for height and it clipped. */
+.tile[data-haschart="true"] {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label label"
+    "value chart"
+    "sub   chart"
+    "foot  foot";
+  column-gap: clamp(8px, 1vw, 16px);
+}
+
+.tile[data-haschart="true"] .tileLabel {
+  grid-area: label;
+}
+.tile[data-haschart="true"] .tileValue {
+  grid-area: value;
+}
+.tile[data-haschart="true"] .tileSub {
+  grid-area: sub;
+}
+.tile[data-haschart="true"] .tileFoot {
+  grid-area: foot;
+}
+
+.tile[data-haschart="true"] .tileBullet {
+  grid-area: chart;
+  align-self: center;
+  padding-top: 0;
+  min-height: 0;
+}
+
+/* Square, bounded, and never wider than the space beside the text. */
+.donut {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  height: 100%;
+  max-height: clamp(56px, 14vh, 124px);
+  min-height: 0;
+}
+
+.donut svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.donutTrack {
+  stroke: var(--band-fair);
+}
+
+/* The ring is painted by the per-rag gradient defined in the SVG. A CSS `stroke`
+   beats the presentation attribute, so the paint has to be set here, not inline. */
+.donutValue[data-rag="good"] {
+  stroke: url(#donutGrad-good);
+}
+.donutValue[data-rag="warning"] {
+  stroke: url(#donutGrad-warning);
+}
+.donutValue[data-rag="critical"] {
+  stroke: url(#donutGrad-critical);
+}
+.donutValue[data-rag="neutral"] {
+  stroke: url(#donutGrad-neutral);
+}
+
+/* Ombré stops: a brighter tint into a deeper shade, running corner to corner.
+   Two clearly different colours per state, so the gradient actually reads. */
+.donutStopA[data-rag="good"] {
+  stop-color: #8ef06a;
+}
+.donutStopB[data-rag="good"] {
+  stop-color: #026605;
+}
+.donutStopA[data-rag="warning"] {
+  stop-color: #ffe07a;
+}
+.donutStopB[data-rag="warning"] {
+  stop-color: #c85f00;
+}
+.donutStopA[data-rag="critical"] {
+  stop-color: #ff9a6b;
+}
+.donutStopB[data-rag="critical"] {
+  stop-color: #8f1414;
+}
+.donutStopA[data-rag="neutral"] {
+  stop-color: #deded4;
+}
+.donutStopB[data-rag="neutral"] {
+  stop-color: #78776d;
+}
+
+@media (prefers-color-scheme: dark) {
+  .donutStopA[data-rag="neutral"] {
+    stop-color: #4a4a46;
+  }
+  .donutStopB[data-rag="neutral"] {
+    stop-color: #2b2b28;
+  }
+}
+
+.donutPercent {
+  fill: var(--text-primary);
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.donutCaption {
+  fill: var(--text-muted);
+  font-size: 9px;
+}
+
+/* ------------------------------------------------------- overdue chart */
+
+/* The chart sits in the tile's 1fr row and fills it; the plot takes the slack
+   and the month axis is a fixed strip beneath. */
+.overdueChart {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+}
+
+.overduePlot {
+  position: relative;
+  flex: 1;
+  min-height: 40px;
+}
+
+.overduePlot svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.overdueDot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--series-1);
+  box-shadow: 0 0 0 2px var(--surface-1);
+  transform: translate(-50%, -50%);
+}
+
+/* A small marker on every month of the current-year line. */
+.overduePoint {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--series-1);
+  transform: translate(-50%, -50%);
+}
+
+
+.overdueTargetLabel {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  padding: 0 3px;
+  font-size: clamp(9px, 1.1vh, 11px);
+  color: var(--warning);
+  background: var(--surface-1);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Twelve equal columns so each month's name and its amount stack together and
+   line up with the plot above. */
+.overdueAxis {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  padding: 0 2px;
+  overflow: hidden;
+}
+
+.overdueAxisCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+}
+
+.overdueAxisMonth {
+  font-size: clamp(9px, 1vw, 12px);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.overdueAxisValue {
+  font-size: clamp(9px, 1.05vw, 13px);
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Line swatches next to the year labels in the sub-line. */
+.overdueLegend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.overdueLegend em {
+  display: inline-block;
+  width: 12px;
+  height: 0;
+  margin-right: 1px;
+  border-top: 2px solid var(--series-1);
+}
+
+.legPrior {
+  border-top-style: dashed !important;
+  border-top-color: var(--axis) !important;
 }
 
 /* ---------------------------------------------------------------- header */
@@ -497,4 +961,173 @@
     grid-template-rows: auto auto auto auto auto;
     min-height: 180px;
   }
+}
+
+/* ------------------------------------------ marketing: responsive stack */
+
+/* Below this width the four-column wallboard can't stay legible, so marketing
+   stops being fixed-height: everything stacks into one column and the page
+   scrolls instead of clipping. */
+@media (max-width: 900px) {
+  .panel[data-marketing="true"] {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    grid-template-rows: auto auto;
+    gap: clamp(14px, 4vw, 24px);
+  }
+
+  /* One column; drop the desktop grid placements for the span and spend card. */
+  .panel[data-marketing="true"] .regionList {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    gap: clamp(14px, 4vw, 22px);
+  }
+  .panel[data-marketing="true"] .region[data-span="true"],
+  .panel[data-marketing="true"] .spendBar {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  /* Cards flow at their own height rather than filling fixed rows. */
+  .panel[data-marketing="true"] .regionTopRow,
+  .panel[data-marketing="true"] .regionTopRow[data-cards="4"] {
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    gap: clamp(10px, 3vw, 16px);
+  }
+  .panel[data-marketing="true"] .tile[data-compact="true"] {
+    overflow: visible;
+  }
+
+  /* The donut needs a definite height once its card is no longer a fixed cell. */
+  .panel[data-marketing="true"] .donut {
+    height: clamp(96px, 26vw, 150px);
+    max-height: none;
+  }
+
+  /* The spanning card stacks: title over spend, its rule turns horizontal. */
+  .panel[data-marketing="true"] .spendBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(12px, 3.5vw, 18px);
+  }
+  .panel[data-marketing="true"] .spendBarTitle {
+    flex: 0 0 auto;
+    padding-right: 0;
+  }
+  .panel[data-marketing="true"] .spendGroup {
+    flex: 0 0 auto;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-left: 0;
+    padding-top: clamp(12px, 3.5vw, 18px);
+  }
+  .panel[data-marketing="true"] .spendCols {
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+    gap: clamp(8px, 3vw, 16px);
+  }
+}
+
+/* ------------------------------------------------------------ awards table */
+
+/* Fit-to-screen wallboard on the CEO theme: a surface-coloured table on the panel
+   background, paginated by its client component (no scroll). */
+.panel[data-awards="true"] {
+  height: 100dvh;
+  overflow: hidden;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  padding: clamp(12px, 2.2vh, 30px) clamp(16px, 2.2vw, 40px);
+}
+
+.awardsTableWrap {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+  box-shadow: var(--shadow);
+}
+
+.awardsTable {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.awardsTable thead th {
+  width: 20%;
+  text-align: right;
+  padding: clamp(8px, 1.4vh, 16px) clamp(12px, 1.3vw, 26px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--surface-1);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.awardsTable thead th.awColName {
+  width: 40%;
+  text-align: left;
+}
+
+.awardsTable tbody td {
+  padding: clamp(4px, 1vh, 14px) clamp(12px, 1.3vw, 26px);
+  border-top: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+/* Gentle zebra: a faint neutral tint on the whole row (not the cell), so it fills
+   the full row height in both light and dark, rather than the heavier band token. */
+.awardsTable tbody tr:nth-child(even) {
+  background: rgba(128, 128, 128, 0.06);
+}
+
+/* A plain table cell (no flex), so it stretches to the full row height and the
+   stripe never leaves a dark band beneath the text. */
+.awName {
+  min-width: 0;
+}
+.awNameText {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1.15;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.awCount {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.5em;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.awNum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+.awNum[data-kind="cash"],
+.awNum[data-kind="revenue"] {
+  color: var(--good);
+}
+.awNum[data-kind="overdue"] {
+  color: var(--critical);
+}
+.awNum[data-zero="true"] {
+  color: var(--text-muted);
+  font-weight: 500;
 }

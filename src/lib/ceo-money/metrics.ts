@@ -21,6 +21,7 @@ import {
   type InvoiceRegister,
 } from "./invoice-register";
 import { toSGD } from "./money";
+import { buildOverdueSeries, type OverdueSeries } from "./overdue-series";
 import type {
   ArHistoryPoint,
   ArMetric,
@@ -465,6 +466,8 @@ export interface RegionDashboard {
   paidCount: number;
   ratesUsed: Array<[string, number]>;
   revenueExcluded: { rows: number; sgd: number };
+  /** Overdue-receivables balance across the year, for the YTD chart. */
+  overdueSeries: OverdueSeries;
   warnings: string[];
 }
 
@@ -473,6 +476,7 @@ export function buildRegionDashboard(
   asOfDate: string,
   config: DashboardConfig,
   revenueTarget: number,
+  overdueTarget: number,
 ): RegionDashboard {
   const asOf = toEpochDay(asOfDate);
   const start = weekStart(asOf);
@@ -514,6 +518,7 @@ export function buildRegionDashboard(
     paidCount: paidCountIn(register, start, asOf),
     ratesUsed: ratesUsedIn(register, start, asOf),
     revenueExcluded: excludedIn(register, start, asOf),
+    overdueSeries: buildOverdueSeries(register, asOfDate, overdueTarget),
     warnings: register.warnings,
   };
 }

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { BulletChart } from "./BulletChart";
 import styles from "./ceo-dashboard.module.css";
 import type { Bullet } from "@/lib/ceo/bullet";
@@ -19,19 +20,32 @@ interface StatTileProps {
   /** Short lines under the value: attainment, target, comparison. */
   subLines: string[];
   /** Where the value sits against its target. Absent when there is no target. */
-  bullet: Bullet | null;
+  bullet?: Bullet | null;
   /** Renders the bullet's own numbers. The tile's headline `value` is pre-formatted. */
-  format: (value: number) => string;
+  format?: (value: number) => string;
+  /** An alternative visual — a donut, say — rendered in place of the bullet. */
+  chart?: ReactNode;
   /** Smaller type and less padding, so several regions of tiles fit one screen. */
   compact?: boolean;
 }
 
-export function StatTile({ label, value, rag, note, subLines, bullet, format, compact = false }: StatTileProps) {
+export function StatTile({
+  label,
+  value,
+  rag,
+  note,
+  subLines,
+  bullet,
+  format,
+  chart,
+  compact = false,
+}: StatTileProps) {
   return (
     <section
       className={styles.tile}
       data-rag={rag}
       data-compact={compact ? "true" : "false"}
+      data-haschart={chart ? "true" : "false"}
       aria-label={`${label}: ${value}, ${note}`}
     >
       <div className={styles.tileLabel}>{label}</div>
@@ -43,14 +57,14 @@ export function StatTile({ label, value, rag, note, subLines, bullet, format, co
         ))}
       </div>
 
-      {/* Where the value sits against its target: the one question a red tile begs. */}
-      <div className={styles.tileBullet}>
-        {bullet ? (
-          <BulletChart bullet={bullet} rag={rag} format={format} />
-        ) : (
-          <span className={styles.bulletAbsent}>No target set</span>
-        )}
-      </div>
+      {/* Where the value sits against its target: the one question a red tile begs.
+          A card with neither a chart nor a target simply omits this row and lets
+          the slack fall through, rather than printing a "No target set" apology. */}
+      {(chart || (bullet && format)) && (
+        <div className={styles.tileBullet}>
+          {chart ?? <BulletChart bullet={bullet!} rag={rag} format={format!} />}
+        </div>
+      )}
 
       <div className={styles.tileFoot}>
         <span className={styles.badge} data-rag={rag}>

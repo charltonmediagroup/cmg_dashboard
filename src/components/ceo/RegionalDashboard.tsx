@@ -1,17 +1,29 @@
+import Link from "next/link";
+import DashboardControls from "@/components/DashboardControls";
 import styles from "./ceo-dashboard.module.css";
+import { OverdueChart } from "./OverdueChart";
 import { RefreshButton } from "./RefreshButton";
 import { StatTile } from "./StatTile";
-import { buildOverdueGauge, buildTargetBullet } from "@/lib/ceo-money/bullet";
+import { buildTargetBullet } from "@/lib/ceo-money/bullet";
 import { BUSINESS_DAYS_PER_WEEK } from "@/lib/ceo-money/config";
 import { formatWeekRange } from "@/lib/ceo-money/date";
 import type { RegionDashboard } from "@/lib/ceo-money/metrics";
-import { formatCentsSGD, formatFullSGD } from "@/lib/ceo-money/money";
-import { formatAttainment, formatCount, formatPercent } from "@/lib/ceo/format";
+import { formatCentsSGD, formatCompactSGD, formatFullSGD } from "@/lib/ceo-money/money";
+import type { OverdueSeries } from "@/lib/ceo-money/overdue-series";
+import { formatAttainment, formatCount } from "@/lib/ceo/format";
+import type { Rag } from "@/lib/ceo/rag";
 import type { DashboardConfig } from "@/lib/ceo-money/types";
 
 export interface RegionView {
   label: string;
   data: RegionDashboard;
+}
+
+/** One account tab in the money nav. */
+export interface AccountLink {
+  key: string;
+  label: string;
+  href: string;
 }
 
 export interface RegionalDashboardProps {
@@ -23,6 +35,12 @@ export interface RegionalDashboardProps {
   sourceLabel: string;
   regions: RegionView[];
   config: DashboardConfig;
+  /** The account tabs to offer in the controls nav. */
+  accounts?: AccountLink[];
+  /** Which account this page is showing, highlighted in the nav. */
+  activeAccount?: string;
+  /** A caveat about which week is on screen, e.g. following the sheet's latest. */
+  weekNote?: string | null;
 }
 
 /**
@@ -39,6 +57,9 @@ export function RegionalDashboard({
   sourceLabel,
   regions,
   config,
+  accounts = [],
+  activeAccount,
+  weekNote,
 }: RegionalDashboardProps) {
   // Every region shares the same week, so the header can read it off the first.
   const head = regions[0]?.data;
@@ -50,6 +71,7 @@ export function RegionalDashboard({
   // list revealed on hover. Status first, then the per-region data warnings.
   const notices: string[] = [];
   if (pinned) notices.push(`Pinned week — showing the week containing ${asOf}, not the current one.`);
+  if (weekNote) notices.push(weekNote);
   notices.push(
     live
       ? `Live from ${sourceLabel}. Only the revenue targets are invented.`
@@ -58,13 +80,13 @@ export function RegionalDashboard({
   notices.push(...warnings);
 
   // A plain "live, current week, nothing wrong" state needs no indicator at all.
-  const hasNotice = pinned || !live || warnings.length > 0;
+  const hasNotice = pinned || !!weekNote || !live || warnings.length > 0;
 
   return (
     <section className={styles.panel} data-fullscreen="true" data-notice={hasNotice ? "yes" : "no"} data-regional="true">
       <header className={styles.masthead}>
         <div>
-          <h1>Cash, revenue and receivables by region</h1>
+          <h1>Cash, revenue and receivables</h1>
           {head && (
             <div className={styles.week}>
               {formatWeekRange(head.weekStart, head.weekEnd)} · {businessDaysElapsed} of {BUSINESS_DAYS_PER_WEEK}{" "}
@@ -100,10 +122,11 @@ export function RegionalDashboard({
         {regions.map(({ label, data }) => (
           <section key={label} className={styles.region}>
             <h2 className={styles.regionLabel}>{label}</h2>
-            <div className={styles.kpiRow} data-tiles="3">
-              <StatTile
-                compact
-                label="Cash collected this week"
+            <div className={styles.regionGrid}>
+              <div className={styles.regionTopRow}>
+                <StatTile
+                  compact
+                  label="Cash collected this week"
                 value={formatFullSGD(data.cash.actual)}
                 rag={data.cash.rag}
                 note={data.cash.note}
@@ -132,22 +155,9 @@ export function RegionalDashboard({
                 ].filter(Boolean)}
                 bullet={buildTargetBullet(data.revenue, config)}
                 format={formatFullSGD}
-              />
-              <StatTile
-                compact
-                label="Overdue receivables, 30+ days"
-                value={formatFullSGD(data.overdue.actual)}
-                rag={data.overdue.rag}
-                note={data.overdue.note}
-                subLines={[
-                  data.overdue.ratio !== null
-                    ? `${formatPercent(data.overdue.ratio, 1)} of the ${formatFullSGD(data.overdue.outstanding)} owed is overdue`
-                    : "Nothing outstanding",
-                  `${formatCount(data.overdue.count)} invoice${data.overdue.count === 1 ? "" : "s"} past terms`,
-                ]}
-                bullet={buildOverdueGauge(data.overdue, config)}
-                format={(n) => formatPercent(n, 0)}
-              />
+                />
+              </div>
+              <OverdueCard series={data.overdueSeries} />
             </div>
           </section>
         ))}
@@ -155,9 +165,74 @@ export function RegionalDashboard({
 
       <footer className={styles.sourceNote}>
         All figures in SGD · weeks run Friday to Thursday, Asia/Singapore · revenue counts invoices on their issue
-        date, cash counts payments on the day they landed, overdue is unpaid invoices 30+ days old as a share of
-        what is still owed
+        date, cash counts payments on the day they landed · the overdue chart tracks the 30+ day balance across the
+        year against last year and the target
       </footer>
+
+      <DashboardControls>
+        {accounts.length > 0 && (
+          <nav className="flex items-center gap-2" aria-label="Account">
+            {accounts.map((a) => {
+              const active = a.key === activeAccount;
+              return (
+                <Link
+                  key={a.key}
+                  href={a.href}
+                  aria-current={active ? "page" : undefined}
+                  className={
+                    active
+                      ? "rounded-lg bg-white/25 px-5 py-3 text-lg text-white ring-1 ring-white/40"
+                      : "rounded-lg bg-black/40 px-5 py-3 text-lg text-white hover:bg-black/60 active:bg-black/70"
+                  }
+                >
+                  {a.label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
+      </DashboardControls>
+    </section>
+  );
+}
+
+/**
+ * The overdue-receivables card: the current balance and a YTD line chart against
+ * last year and the target. Less is better, so the RAG turns on how far the
+ * balance sits above the target ceiling.
+ */
+function OverdueCard({ series }: { series: OverdueSeries }) {
+  const { current, target } = series;
+  const rag: Rag = current <= target ? "good" : current <= target * 1.25 ? "warning" : "critical";
+  const over = current > target;
+  const note = over ? "Above target" : "Within target";
+  const gap = `${formatCompactSGD(Math.abs(current - target))} ${over ? "over" : "under"} target`;
+
+  return (
+    <section
+      className={`${styles.tile} ${styles.overdueTile}`}
+      data-rag={rag}
+      data-compact="true"
+      aria-label={`Overdue receivables, 30+ days: ${formatFullSGD(current)}, ${note}`}
+    >
+      <div className={styles.tileLabel}>Overdue receivables, 30+ days</div>
+      <div className={styles.tileValue}>{formatFullSGD(current)}</div>
+      <div className={styles.tileSub}>
+        <span>{gap}</span>
+        <span className={styles.overdueLegend}>
+          <em className={styles.legThis} aria-hidden="true" /> {series.thisYearLabel}
+          <em className={styles.legPrior} aria-hidden="true" /> {series.priorYearLabel}
+        </span>
+      </div>
+
+      <OverdueChart series={series} />
+
+      <div className={styles.tileFoot}>
+        <span className={styles.badge} data-rag={rag}>
+          <span className={styles.dot} aria-hidden="true" />
+          {note}
+        </span>
+      </div>
     </section>
   );
 }
