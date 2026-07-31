@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import * as brandsRepo from "@/lib/repos/brands";
 import LoadingPage from "@/components/LoadingPage";
 import { getTodaysBirthdaySlides } from "@/lib/birthdays/today";
+import { brandSiteConfig } from "@/lib/util/brandSiteConfig";
 
 const BrandDashboard = nextDynamic(() => import("@/components/BrandDashboard"));
 const BrandWithBirthdayRotator = nextDynamic(
@@ -25,11 +26,7 @@ export default async function BrandDrillInPage({
   ]);
   if (!row) notFound();
 
-  const siteConfig = {
-    name: row.displayName,
-    url: row.url,
-    image: row.image,
-  };
+  const siteConfig = brandSiteConfig(row);
 
   return (
     <Suspense fallback={<LoadingPage loadingText={`Loading ${row.displayName}…`} />}>

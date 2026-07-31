@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import * as brandsRepo from "@/lib/repos/brands";
 import { getCache, ttls } from "@/lib/cache";
 import { getEvents, type EventBrand } from "@/lib/sources/drupalEvents";
+import { manualBizzconEvents } from "@/lib/sources/manualEvents";
 import LoadingPage from "@/components/LoadingPage";
 import BizzconGridClient from "../BizzconGridClient";
 
@@ -11,14 +12,18 @@ export const dynamic = "force-dynamic";
 async function loadEventsForBrand(slug: string) {
   const row = await brandsRepo.findBySlug(slug);
   if (!row || !(row.departments ?? []).includes("bizzcon")) return null;
-  if (!row.url) return [];
-  const sources: EventBrand[] = [
-    { brand: row.slug, name: row.displayName, url: row.url, image: row.image },
-  ];
-  return getCache().getOrLoad(
-    `bizzcon:events:${slug}`,
-    () => getEvents(sources),
-    { ttlMs: ttls.BIZZCON, staleMs: ttls.BIZZCON_STALE },
+  const sources: EventBrand[] = row.url
+    ? [{ brand: row.slug, name: row.displayName, url: row.url, image: row.image }]
+    : [];
+  const scraped = sources.length
+    ? await getCache().getOrLoad(
+        `bizzcon:events:${slug}`,
+        () => getEvents(sources),
+        { ttlMs: ttls.BIZZCON, staleMs: ttls.BIZZCON_STALE },
+      )
+    : [];
+  return [...scraped, ...manualBizzconEvents([row])].sort(
+    (a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
   );
 }
 

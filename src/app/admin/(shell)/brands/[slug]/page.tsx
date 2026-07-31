@@ -36,6 +36,18 @@ export default async function PublicationDetailPage({
     awardsShowcaseId: brand.awardsShowcaseId ?? "",
     departments: brand.departments ?? [],
     active: brand.active,
+    customNewsFeedUrl: brand.customFeeds?.newsFeedUrl ?? "",
+    customExclusiveFeedUrl: brand.customFeeds?.exclusiveFeedUrl ?? "",
+    customVideosFeedUrl: brand.customFeeds?.videosFeedUrl ?? "",
+    customTopReadFeedUrl: brand.customFeeds?.topReadFeedUrl ?? "",
+    manualEvents: (brand.manualEvents ?? []).map((ev) => ({
+      department: ev.department,
+      title: ev.title,
+      date: ev.date,
+      city: ev.city ?? "",
+      link: ev.link ?? "",
+      image: ev.image ?? "",
+    })),
   };
 
   return (
