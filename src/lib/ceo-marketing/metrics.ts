@@ -110,13 +110,10 @@ export function cplMetricFromActual(
         ? "warning"
         : "critical";
 
-  const ceiling = formatPercent(config.cplCriticalOverrun);
+  // Show the exact overrun rather than the band's ceiling — "34% over target",
+  // not "25%+ over target".
   const note =
-    rag === "good"
-      ? "On or below target"
-      : rag === "warning"
-        ? `Up to ${ceiling} over`
-        : `${ceiling}+ over target`;
+    rag === "good" ? "On or below target" : `${formatPercent(overrun)} over target`;
 
   return { actual, target, overrun, spend, leads, rag, note };
 }

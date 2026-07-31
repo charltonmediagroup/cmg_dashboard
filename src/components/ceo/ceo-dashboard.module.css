@@ -144,20 +144,34 @@
    warning. Brighter in dark mode where it carries on a dark surface. */
 /* --accent is the orange (gradient end); --accent-2 the punchier, more saturated
    orange it starts from — vivid, not dark. Brighter overall in dark mode. */
+/* Marketing runs a midnight theme in both colour schemes: a deep blue-to-black
+   gradient with the dark palette forced on, so the frosted glass cards and their
+   light text read the same whether the viewer is in light or dark mode. */
 .panel[data-marketing="true"] {
-  --accent: #f2711c;
-  --accent-2: #ff6a00;
+  --accent: #ff9a4d;
+  --accent-2: #ff7a1f;
+  --text-primary: #f4f6fb;
+  --text-secondary: #aeb8cc;
+  --text-muted: #77809a;
+  --axis: #35405c;
+  --border: rgba(255, 255, 255, 0.1);
+  --band-good: #182233;
+  --band-fair: #202c42;
+  --band-poor: #2b3a56;
+  --shadow: none;
+  color: var(--text-primary);
   grid-template-rows: minmax(0, 1fr);
   /* Slimmer left/right padding than the regional default, so the cards get the
      width back; vertical padding unchanged. */
   padding: clamp(12px, 2vh, 28px) clamp(8px, 1.2vw, 22px);
-}
-
-@media (prefers-color-scheme: dark) {
-  .panel[data-marketing="true"] {
-    --accent: #ff9a4d;
-    --accent-2: #ff7a1f;
-  }
+  /* Near-black top-left deepening into midnight blue, with a warm orange glow in
+     the top-left corner behind the title — it shows through the translucent
+     spanning card, tinting the frosted glass warm where the heading sits. */
+  background:
+    radial-gradient(70% 60% at 8% 0%, rgba(242, 113, 28, 0.16), transparent 62%),
+    radial-gradient(130% 95% at 82% 100%, rgba(24, 46, 88, 0.36), transparent 60%),
+    radial-gradient(120% 90% at 0% 0%, rgba(12, 24, 48, 0.3), transparent 55%),
+    linear-gradient(160deg, #020306, #060d18 78%);
 }
 
 /* Marketing lays its four categories out as four columns — one per category —
@@ -321,8 +335,15 @@
    each. That keeps colour on this page meaning one thing only — RAG state, on the
    donut ring, the badge and the leads number. So the card's left edge is neutral,
    not the RAG border it used to carry. */
+/* Frosted glass over the midnight panel: a faint light film, a hairline top
+   highlight, and a soft drop so each pane lifts off the gradient. No RAG left
+   bar — state is carried by the donut and the badge below. */
 .panel[data-marketing="true"] .tile {
-  border-left: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Each column titled like a section header, with a rule beneath, so the four read
@@ -356,6 +377,9 @@
 .panel[data-marketing="true"] .tile .tileLabel {
   font-weight: 500;
   color: var(--text-secondary);
+  /* One line, always — the card label must not wrap when fullscreen. Sized in vw
+     below so it tracks the column width; nowrap guarantees the single line. */
+  white-space: nowrap;
 }
 
 
@@ -864,6 +888,42 @@
   color: var(--text-secondary);
 }
 
+/* Marketing merges the dot and the glyph into one marker: the colour dot is
+   dropped and the shape carries state as a coloured arrow. Up/green for good,
+   down/amber for warning, down/red for critical, dash/grey for neutral. The
+   shape text comes from the shared component, so it is collapsed and re-drawn
+   here via ::before — scoped to marketing, money keeps its own dot + glyph. */
+.panel[data-marketing="true"] .badge .dot {
+  display: none;
+}
+.panel[data-marketing="true"] .badge .glyph {
+  font-size: 0;
+  line-height: 1;
+}
+.panel[data-marketing="true"] .badge .glyph::before {
+  font-size: clamp(12px, 1vw, 16px);
+  font-weight: 700;
+  line-height: 1;
+}
+/* Brighter, near-neon hues for the arrows so they pop and glow on the midnight
+   panel — a step up from the muted RAG tokens used for the money charts. */
+.panel[data-marketing="true"] .badge[data-rag="good"] .glyph::before {
+  content: "\25B2"; /* ▲ */
+  color: #2ee65f;
+}
+.panel[data-marketing="true"] .badge[data-rag="warning"] .glyph::before {
+  content: "\25BC"; /* ▼ */
+  color: #ffcf4d;
+}
+.panel[data-marketing="true"] .badge[data-rag="critical"] .glyph::before {
+  content: "\25BC"; /* ▼ */
+  color: #ff5a5a;
+}
+.panel[data-marketing="true"] .badge[data-rag="neutral"] .glyph::before {
+  content: "\2013"; /* – */
+  color: #9aa6c4;
+}
+
 .sourceNote {
   font-size: clamp(10.5px, 0.72vw, 13px);
   color: var(--text-muted);
@@ -1158,7 +1218,8 @@
   font-size: clamp(11px, 1.4vh, 16px);
 }
 .panel[data-marketing="true"] .tile[data-compact="true"] .tileLabel {
-  font-size: clamp(15px, 2.5vh, 28px);
+  /* vw, not vh: scales with the column width so it stays on one line fullscreen. */
+  font-size: clamp(14px, 1.2vw, 24px);
 }
 .panel[data-marketing="true"] .tile[data-compact="true"] .tileValue {
   font-size: clamp(26px, 3.9vh, 60px);
@@ -1195,7 +1256,9 @@
   gap: clamp(1px, 0.3vh, 4px);
 }
 .panel[data-marketing="true"] .regionTopRow[data-cards="4"] .tile[data-compact="true"] .tileLabel {
-  font-size: clamp(15px, 2.5vh, 28px);
+  /* Awards.info's longest label ("Cost Per Quality Lead vs Target") — width-based
+     and a touch smaller so it too holds one line fullscreen. */
+  font-size: clamp(13px, 1.1vw, 22px);
 }
 .panel[data-marketing="true"] .regionTopRow[data-cards="4"] .tile[data-compact="true"] .tileValue {
   font-size: clamp(25px, 3.8vh, 58px);

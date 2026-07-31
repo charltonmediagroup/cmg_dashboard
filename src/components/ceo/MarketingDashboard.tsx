@@ -240,7 +240,7 @@ function CategoryRow({
       <div className={styles.regionTopRow} data-cards={quality ? "4" : "2"}>
         <StatTile
           compact
-          label={isLeads ? "Paid Leads Generated This Week" : "Clicks generated this week"}
+          label={isLeads ? "Paid Leads Generated This Week" : "Clicks Generated This Week"}
           value={formatLeads(primary.actual)}
           rag={primary.rag}
           note={primary.note}
@@ -248,7 +248,7 @@ function CategoryRow({
         />
         <StatTile
           compact
-          label={isLeads ? "Cost per lead vs target" : "Cost per click vs target"}
+          label={isLeads ? "Cost Per Lead vs Target" : "Cost Per Click vs Target"}
           value={cost.actual === null ? "—" : formatCostPerLead(cost.actual)}
           rag={cost.rag}
           note={cost.note}
