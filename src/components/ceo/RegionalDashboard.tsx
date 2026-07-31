@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Oswald } from "next/font/google";
 import DashboardControls from "@/components/DashboardControls";
 import styles from "./ceo-dashboard.module.css";
 import { OverdueChart } from "./OverdueChart";
@@ -13,6 +14,10 @@ import type { OverdueSeries } from "@/lib/ceo-money/overdue-series";
 import { formatAttainment, formatCount } from "@/lib/ceo/format";
 import type { Rag } from "@/lib/ceo/rag";
 import type { DashboardConfig } from "@/lib/ceo-money/types";
+
+// The masthead title's display face — the same condensed Oswald used by the
+// marketing dashboard, self-hosted by next/font (no runtime request).
+const titleFont = Oswald({ subsets: ["latin"], weight: ["500", "700"], display: "swap", variable: "--font-title" });
 
 export interface RegionView {
   label: string;
@@ -83,10 +88,17 @@ export function RegionalDashboard({
   const hasNotice = pinned || !!weekNote || !live || warnings.length > 0;
 
   return (
-    <section className={styles.panel} data-fullscreen="true" data-notice={hasNotice ? "yes" : "no"} data-regional="true">
+    <section
+      className={`${styles.panel} ${titleFont.variable}`}
+      data-fullscreen="true"
+      data-notice={hasNotice ? "yes" : "no"}
+      data-regional="true"
+      data-money="true"
+      data-regions={regions.length}
+    >
       <header className={styles.masthead}>
         <div>
-          <h1>Cash, revenue and receivables</h1>
+          <h1>Cash, Revenue and Overdue Receivables</h1>
           {head && (
             <div className={styles.week}>
               {formatWeekRange(head.weekStart, head.weekEnd)} · {businessDaysElapsed} of {BUSINESS_DAYS_PER_WEEK}{" "}
@@ -114,7 +126,6 @@ export function RegionalDashboard({
               </div>
             </div>
           )}
-          <RefreshButton />
         </div>
       </header>
 
@@ -126,7 +137,7 @@ export function RegionalDashboard({
               <div className={styles.regionTopRow}>
                 <StatTile
                   compact
-                  label="Cash collected this week"
+                  label="Cash Collected This Week"
                 value={formatFullSGD(data.cash.actual)}
                 rag={data.cash.rag}
                 note={data.cash.note}
@@ -143,7 +154,7 @@ export function RegionalDashboard({
               />
               <StatTile
                 compact
-                label="Revenue closed this week"
+                label="Revenue Closed This Week"
                 value={formatFullSGD(data.revenue.actual)}
                 rag={data.revenue.rag}
                 note={data.revenue.note}
@@ -163,13 +174,13 @@ export function RegionalDashboard({
         ))}
       </div>
 
-      <footer className={styles.sourceNote}>
-        All figures in SGD · weeks run Friday to Thursday, Asia/Singapore · revenue counts invoices on their issue
-        date, cash counts payments on the day they landed · the overdue chart tracks the 30+ day balance across the
-        year against last year and the target
-      </footer>
-
       <DashboardControls>
+        <Link
+          href="/dashboard/ceo"
+          className="rounded-lg bg-black/40 px-5 py-3 text-lg text-white hover:bg-black/60 active:bg-black/70"
+        >
+          ← Back
+        </Link>
         {accounts.length > 0 && (
           <nav className="flex items-center gap-2" aria-label="Account">
             {accounts.map((a) => {
@@ -191,6 +202,7 @@ export function RegionalDashboard({
             })}
           </nav>
         )}
+        <RefreshButton className="rounded-lg bg-black/40 px-5 py-3 text-lg text-white hover:bg-black/60 active:bg-black/70 disabled:opacity-60" />
       </DashboardControls>
     </section>
   );
@@ -230,6 +242,7 @@ function OverdueCard({ series }: { series: OverdueSeries }) {
       <div className={styles.tileFoot}>
         <span className={styles.badge} data-rag={rag}>
           <span className={styles.dot} aria-hidden="true" />
+          <span className={styles.glyph} aria-hidden="true" />
           {note}
         </span>
       </div>

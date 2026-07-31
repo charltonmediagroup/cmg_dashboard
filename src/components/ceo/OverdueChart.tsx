@@ -33,6 +33,8 @@ export function OverdueChart({ series }: OverdueChartProps) {
   const max =
     Math.max(
       series.target,
+      series.thisYearLead.value,
+      series.priorYearLead.value,
       ...series.thisYear.map((p) => p.value),
       ...series.priorYear.map((p) => p.value),
       1,
@@ -47,9 +49,6 @@ export function OverdueChart({ series }: OverdueChartProps) {
   const last = series.thisYear[series.thisYear.length - 1];
   const targetY = y(series.target);
 
-  /** Month number → that month's overdue balance, for the axis labels. */
-  const byMonth = new Map(series.thisYear.map((p) => [p.month, p.value]));
-
   return (
     <div className={styles.overdueChart}>
       <div className={styles.overduePlot}>
@@ -58,8 +57,8 @@ export function OverdueChart({ series }: OverdueChartProps) {
           preserveAspectRatio="none"
           role="img"
           aria-label={
-            `Overdue receivables ${series.thisYearLabel} year to date, currently ${formatCompactSGD(series.current)}, ` +
-            `against a target of ${formatCompactSGD(series.target)}; prior year ${series.priorYearLabel} shown for comparison`
+            `Overdue receivables over the last four months of ${series.thisYearLabel}, currently ${formatCompactSGD(series.current)}, ` +
+            `against a target of ${formatCompactSGD(series.target)}; the same months of ${series.priorYearLabel} shown for comparison`
           }
         >
           <line
@@ -73,7 +72,7 @@ export function OverdueChart({ series }: OverdueChartProps) {
             vectorEffect="non-scaling-stroke"
           />
           <path
-            d={path(series.priorYear)}
+            d={path([series.priorYearLead, ...series.priorYear])}
             fill="none"
             stroke="var(--axis)"
             strokeWidth={1.5}
@@ -82,7 +81,7 @@ export function OverdueChart({ series }: OverdueChartProps) {
             vectorEffect="non-scaling-stroke"
           />
           <path
-            d={path(series.thisYear)}
+            d={path([series.thisYearLead, ...series.thisYear])}
             fill="none"
             stroke="var(--series-1)"
             strokeWidth={2.25}
@@ -117,17 +116,12 @@ export function OverdueChart({ series }: OverdueChartProps) {
       </div>
 
       <div className={styles.overdueAxis}>
-        {MONTHS.map((label, i) => {
-          const value = byMonth.get(i + 1);
-          return (
-            <span key={i} className={styles.overdueAxisCell}>
-              <span className={styles.overdueAxisMonth}>{label}</span>
-              {value !== undefined && (
-                <span className={styles.overdueAxisValue}>{formatCompactSGD(value)}</span>
-              )}
-            </span>
-          );
-        })}
+        {series.thisYear.map((p, i) => (
+          <span key={i} className={styles.overdueAxisCell}>
+            <span className={styles.overdueAxisMonth}>{MONTHS[p.month - 1]}</span>
+            <span className={styles.overdueAxisValue}>{formatCompactSGD(p.value)}</span>
+          </span>
+        ))}
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ export interface AwardsDashboardProps {
   accounts: AccountLink[];
 }
 
-const PAGE_OPTIONS = [6, 8, 10, 12];
+const PAGE_OPTIONS = [6,8, 10];
 const ROTATION_OPTIONS = [
   { label: "Pause", value: 0 },
   { label: "30 seconds", value: 30_000 },
@@ -45,7 +45,7 @@ const CONTROL_BTN = "px-4 py-2 rounded bg-black/40 text-white hover:bg-black/60"
  * and the 30+‑day overdue balance. No charts.
  */
 export function AwardsDashboard({ awards, accounts }: AwardsDashboardProps) {
-  const [pageSize, setPageSize] = useState(8);
+  const [pageSize, setPageSize] = useState(6);
   const [pageIndex, setPageIndex] = useState(0);
   const [rotationInterval, setRotationInterval] = useState(60_000);
 
@@ -153,7 +153,6 @@ export function AwardsDashboard({ awards, accounts }: AwardsDashboardProps) {
               {n} rows
             </option>
           ))}
-          <option value={Math.max(1, awards.length)}>All ({awards.length})</option>
         </select>
         <select
           value={rotationInterval}
