@@ -126,6 +126,7 @@ export default async function CeoMoneyAccountPage({
   // same week in view.
   const asOfQuery = typeof search.asOf === "string" ? `?asOf=${encodeURIComponent(search.asOf)}` : "";
   const accounts = [
+    { key: "all", label: "All Regions", href: `/dashboard/ceo/money${asOfQuery}` },
     ...REGIONS.map((r) => ({
       key: r.key,
       label: r.label,

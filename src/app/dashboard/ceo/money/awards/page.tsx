@@ -96,7 +96,7 @@ export default async function CeoAwardsPage({
   const weekText = formatWeekRange(fromEpochDay(weekStart(toEpochDay(asOf))), fromEpochDay(weekEnd(toEpochDay(asOf))));
 
   const accounts = [
-    ...REGIONS.map((r) => ({ key: r.key, label: r.label, href: `/dashboard/ceo/money/${r.key}` })),
+    { key: "all", label: "All Regions", href: "/dashboard/ceo/money" },
     { key: "awards", label: "2026 Awards", href: "/dashboard/ceo/money/awards" },
   ];
 
