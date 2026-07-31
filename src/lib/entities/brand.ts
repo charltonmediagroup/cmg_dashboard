@@ -25,6 +25,11 @@ export interface ManualEvent {
   city?: string;
   link?: string;
   image?: string;
+  // Submission/nomination details (awards only — drives the "nominations
+  // close in N days" countdown and contact column in the awards grid).
+  submissionStart?: string; // YYYY-MM-DD
+  submissionEnd?: string; // YYYY-MM-DD
+  contactPerson?: string;
 }
 
 export interface Brand extends Timestamped {

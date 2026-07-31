@@ -47,6 +47,9 @@ export default async function PublicationDetailPage({
       city: ev.city ?? "",
       link: ev.link ?? "",
       image: ev.image ?? "",
+      submissionStart: ev.submissionStart ?? "",
+      submissionEnd: ev.submissionEnd ?? "",
+      contactPerson: ev.contactPerson ?? "",
     })),
   };
 

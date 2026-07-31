@@ -34,6 +34,9 @@ export type ManualEventRow = {
   city: string;
   link: string;
   image: string;
+  submissionStart: string;
+  submissionEnd: string;
+  contactPerson: string;
 };
 
 const FILTER_MATCH_TYPES = ["EXACT", "BEGINS_WITH", "ENDS_WITH", "CONTAINS"] as const;
@@ -123,6 +126,9 @@ export default function BrandEditor({
         ...(ev.city.trim() ? { city: ev.city.trim() } : {}),
         ...(ev.link.trim() ? { link: ev.link.trim() } : {}),
         ...(ev.image.trim() ? { image: ev.image.trim() } : {}),
+        ...(ev.submissionStart.trim() ? { submissionStart: ev.submissionStart.trim() } : {}),
+        ...(ev.submissionEnd.trim() ? { submissionEnd: ev.submissionEnd.trim() } : {}),
+        ...(ev.contactPerson.trim() ? { contactPerson: ev.contactPerson.trim() } : {}),
       }));
     if (ga4FilterFieldName.trim() && ga4FilterValue.trim()) {
       body.ga4Filter = {
@@ -477,6 +483,57 @@ export default function BrandEditor({
                           placeholder="https://…"
                         />
                       </label>
+                      {ev.department === "awards" && (
+                        <>
+                          <label className="flex flex-col gap-1 text-sm">
+                            <span className="opacity-70">Submissions open (optional)</span>
+                            <input
+                              type="date"
+                              className="border border-black/15 dark:border-white/15 rounded px-2 py-1 bg-transparent"
+                              value={ev.submissionStart}
+                              onChange={(e) =>
+                                setManualEvents((prev) =>
+                                  prev.map((p, j) =>
+                                    j === i ? { ...p, submissionStart: e.target.value } : p,
+                                  ),
+                                )
+                              }
+                            />
+                          </label>
+                          <label className="flex flex-col gap-1 text-sm">
+                            <span className="opacity-70">
+                              Submissions deadline (drives the countdown)
+                            </span>
+                            <input
+                              type="date"
+                              className="border border-black/15 dark:border-white/15 rounded px-2 py-1 bg-transparent"
+                              value={ev.submissionEnd}
+                              onChange={(e) =>
+                                setManualEvents((prev) =>
+                                  prev.map((p, j) =>
+                                    j === i ? { ...p, submissionEnd: e.target.value } : p,
+                                  ),
+                                )
+                              }
+                            />
+                          </label>
+                          <label className="flex flex-col gap-1 text-sm col-span-2">
+                            <span className="opacity-70">Contact person (optional)</span>
+                            <input
+                              className="border border-black/15 dark:border-white/15 rounded px-2 py-1 bg-transparent"
+                              value={ev.contactPerson}
+                              onChange={(e) =>
+                                setManualEvents((prev) =>
+                                  prev.map((p, j) =>
+                                    j === i ? { ...p, contactPerson: e.target.value } : p,
+                                  ),
+                                )
+                              }
+                              placeholder="Jane Tan"
+                            />
+                          </label>
+                        </>
+                      )}
                       <label className="flex flex-col gap-1 text-sm col-span-2">
                         <span className="opacity-70">Image URL (optional)</span>
                         <input
@@ -513,6 +570,9 @@ export default function BrandEditor({
                           city: "",
                           link: "",
                           image: "",
+                          submissionStart: "",
+                          submissionEnd: "",
+                          contactPerson: "",
                         },
                       ])
                     }

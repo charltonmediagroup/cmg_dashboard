@@ -16,11 +16,11 @@ export function manualAwards(rows: Brand[]): Award[] {
         title: ev.title,
         field_date: ev.date,
         view_node: ev.link || row.url || "",
-        startDate: null,
-        endDate: null,
+        startDate: ev.submissionStart || null,
+        endDate: ev.submissionEnd || null,
         image: ev.image || undefined,
         city: ev.city || null,
-        contactPerson: null,
+        contactPerson: ev.contactPerson || null,
       });
     }
   }
