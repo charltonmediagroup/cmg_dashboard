@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { humanize } from "@/lib/util/format";
+import { useUnsavedWarning } from "../_widgets/useUnsavedWarning";
 
 export type ClientBrand = {
   slug: string;
@@ -78,6 +79,54 @@ export default function BrandEditor({
   const [selectedDepts, setSelectedDepts] = useState<Set<string>>(new Set(brand.departments));
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  // This form carries twenty-odd fields plus a repeater; a stray click on the
+  // sidebar used to discard the lot without a word.
+  const current = {
+    displayName,
+    url,
+    color,
+    secondaryColor,
+    group,
+    ga4PropertyId,
+    ga4FilterFieldName,
+    ga4FilterMatchType,
+    ga4FilterValue,
+    drupalDomain,
+    image,
+    awardsShowcaseId,
+    customNewsFeedUrl,
+    customExclusiveFeedUrl,
+    customVideosFeedUrl,
+    customTopReadFeedUrl,
+    manualEvents,
+    active,
+    departments: Array.from(selectedDepts).sort(),
+  };
+  const original = {
+    displayName: brand.displayName,
+    url: brand.url,
+    color: brand.color,
+    secondaryColor: brand.secondaryColor,
+    group: brand.group,
+    ga4PropertyId: brand.ga4PropertyId,
+    ga4FilterFieldName: brand.ga4FilterFieldName,
+    ga4FilterMatchType: brand.ga4FilterMatchType || "EXACT",
+    ga4FilterValue: brand.ga4FilterValue,
+    drupalDomain: brand.drupalDomain,
+    image: brand.image,
+    awardsShowcaseId: brand.awardsShowcaseId,
+    customNewsFeedUrl: brand.customNewsFeedUrl,
+    customExclusiveFeedUrl: brand.customExclusiveFeedUrl,
+    customVideosFeedUrl: brand.customVideosFeedUrl,
+    customTopReadFeedUrl: brand.customTopReadFeedUrl,
+    manualEvents: brand.manualEvents,
+    active: brand.active,
+    departments: [...brand.departments].sort(),
+  };
+  useUnsavedWarning(
+    !busy && JSON.stringify(current) !== JSON.stringify(original),
+  );
 
   function toggleDept(slug: string) {
     setSelectedDepts((prev) => {

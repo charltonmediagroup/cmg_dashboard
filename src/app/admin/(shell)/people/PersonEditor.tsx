@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { humanize } from "@/lib/util/format";
 import Hint from "../_widgets/Hint";
+import { useUnsavedWarning } from "../_widgets/useUnsavedWarning";
 
 const ROLES = [
   "managing_editor",
@@ -57,6 +58,16 @@ export default function PersonEditor({
   const [newDept, setNewDept] = useState("");
   const [newRole, setNewRole] = useState<string>("");
   const [pwd, setPwd] = useState("");
+
+  // Profile and synonyms are saved together by the Profile button; department
+  // and password changes save on their own, so they are not tracked here.
+  const dirty =
+    !busy &&
+    (displayName !== person.displayName ||
+      email !== person.email ||
+      active !== person.active ||
+      JSON.stringify(synonyms) !== JSON.stringify(person.nameKeys));
+  useUnsavedWarning(dirty);
 
   async function call(path: string, payload: unknown, message?: string) {
     setBusy(true);

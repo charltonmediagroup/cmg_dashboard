@@ -5,6 +5,25 @@ import { logActivity } from "@/lib/auth/activityLog";
 import { getRepo } from "@/lib/repos/registry";
 import { validateDeleteInput } from "@/lib/repos/validateInput";
 import * as birthdaysRepo from "@/lib/repos/birthdays";
+import * as peopleRepo from "@/lib/repos/people";
+import * as brandsRepo from "@/lib/repos/brands";
+import * as bindingsRepo from "@/lib/repos/dataSourceBindings";
+import * as dashboardsRepo from "@/lib/repos/dashboards";
+
+/**
+ * Deleting a department used to leave every reference to it behind — people and
+ * publications still listing it, plus orphaned bindings and sub-pages that no
+ * screen could reach. Clean those up in the same request and report what went.
+ */
+async function cascadeDepartmentDelete(slug: string) {
+  const [people, brands, bindings, dashboards] = await Promise.all([
+    peopleRepo.removeDepartmentEverywhere(slug),
+    brandsRepo.removeDepartmentEverywhere(slug),
+    bindingsRepo.removeByDepartment(slug),
+    dashboardsRepo.removeByDepartment(slug),
+  ]);
+  return { people, brands, bindings, dashboards };
+}
 
 export const runtime = "nodejs";
 
@@ -46,6 +65,11 @@ export async function POST(
 
   await repo.remove(body);
 
+  const cascade =
+    entity === "departments" && typeof body.slug === "string"
+      ? await cascadeDepartmentDelete(body.slug)
+      : null;
+
   if (blobUrlToDelete) {
     try {
       await del(blobUrlToDelete);
@@ -68,6 +92,7 @@ export async function POST(
             ? body.id
             : undefined,
     before: body,
+    ...(cascade ? { metadata: { cascade } } : {}),
   });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, ...(cascade ? { cascade } : {}) });
 }
