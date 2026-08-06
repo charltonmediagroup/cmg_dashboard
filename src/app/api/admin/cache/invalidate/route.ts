@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/adminAuth";
+import { isDenied, requireAdminApi } from "@/lib/auth/adminAuth";
 import { getCache } from "@/lib/cache";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const session = await getAdminSession(req);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await requireAdminApi(req);
+  if (isDenied(session)) return session;
 
   const body = await req.json().catch(() => null);
   const key = typeof body?.key === "string" ? body.key.trim() : "";

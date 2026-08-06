@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { del } from "@vercel/blob";
-import { getAdminSession } from "@/lib/auth/adminAuth";
+import { isDenied, requireAdminApi } from "@/lib/auth/adminAuth";
 import { logActivity } from "@/lib/auth/activityLog";
 import { getRepo } from "@/lib/repos/registry";
+import { validateDeleteInput } from "@/lib/repos/validateInput";
 import * as birthdaysRepo from "@/lib/repos/birthdays";
 
 export const runtime = "nodejs";
@@ -20,17 +21,19 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ entity: string }> },
 ) {
-  const session = await getAdminSession(req);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await requireAdminApi(req);
+  if (isDenied(session)) return session;
 
   const { entity } = await params;
   const repo = getRepo(entity);
   if (!repo) return NextResponse.json({ error: "Unknown entity" }, { status: 404 });
 
   const body = await req.json().catch(() => null);
-  if (!body || typeof body !== "object") {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
+  const invalid = validateDeleteInput(entity, body as Record<string, unknown>);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
 
   // Capture any media we should clean up after the row is gone
   let blobUrlToDelete: string | null = null;
