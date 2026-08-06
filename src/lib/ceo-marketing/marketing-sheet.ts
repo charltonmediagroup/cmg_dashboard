@@ -1,3 +1,4 @@
+import { resolveCeoSheetId } from "@/lib/ceo/sheet-binding";
 import { getSheetsClient } from "@/lib/sources/googleOAuth";
 import { fromEpochDay, toEpochDay, weekStart, type CivilDate, type EpochDay } from "@/lib/ceo/week";
 import { CATEGORIES, type CategoryUnit } from "./categories";
@@ -84,7 +85,10 @@ export async function loadWeeklyMarketing(
   asOfDate: CivilDate,
   opts: { latest?: boolean } = {},
 ): Promise<WeeklyMarketing> {
-  const spreadsheetId = process.env.CEO_MARKETING_SHEET_ID;
+  const spreadsheetId = await resolveCeoSheetId(
+    "ceo_marketing",
+    process.env.CEO_MARKETING_SHEET_ID,
+  );
   const blank = (): CategoryTotals[] =>
     CATEGORIES.map((c) => ({
       key: c.key,

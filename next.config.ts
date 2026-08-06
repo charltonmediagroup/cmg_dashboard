@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
     "bcryptjs",
     "cheerio",
   ],
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/dashboard/ceo-money", destination: "/dashboard/ceo/money", permanent: true },

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import * as brandsRepo from "@/lib/repos/brands";
 import { getCache, ttls } from "@/lib/cache";
 import { getAwards, type AwardsBrand } from "@/lib/sources/drupalAwards";
+import { manualAwards } from "@/lib/sources/manualEvents";
 import LoadingPage from "@/components/LoadingPage";
 import AwardsGridClient from "../AwardsGridClient";
 
@@ -11,12 +12,18 @@ export const dynamic = "force-dynamic";
 async function loadAwardsForBrand(slug: string) {
   const row = await brandsRepo.findBySlug(slug);
   if (!row || !(row.departments ?? []).includes("awards")) return null;
-  if (!row.url) return [];
-  const sources: AwardsBrand[] = [{ brand: row.slug, name: row.displayName, url: row.url }];
-  return getCache().getOrLoad(
-    `awards:list:${slug}`,
-    () => getAwards(sources),
-    { ttlMs: ttls.AWARDS, staleMs: ttls.AWARDS_STALE },
+  const sources: AwardsBrand[] = row.url
+    ? [{ brand: row.slug, name: row.displayName, url: row.url }]
+    : [];
+  const scraped = sources.length
+    ? await getCache().getOrLoad(
+        `awards:list:${slug}`,
+        () => getAwards(sources),
+        { ttlMs: ttls.AWARDS, staleMs: ttls.AWARDS_STALE },
+      )
+    : [];
+  return [...scraped, ...manualAwards([row])].sort(
+    (a, b) => new Date(a.field_date).getTime() - new Date(b.field_date).getTime(),
   );
 }
 

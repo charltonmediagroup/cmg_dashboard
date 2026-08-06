@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import * as brandsRepo from "@/lib/repos/brands";
 import LoadingPage from "@/components/LoadingPage";
 import EditorialBrandClient from "./EditorialBrandClient";
+import { brandSiteConfig } from "@/lib/util/brandSiteConfig";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +21,7 @@ export default async function EditorialBrandPage({
     <Suspense fallback={<LoadingPage loadingText={`Loading ${row.displayName}…`} />}>
       <EditorialBrandClient
         brand={brand}
-        siteConfig={{
-          name: row.displayName,
-          url: row.url,
-          image: row.image,
-        }}
+        siteConfig={brandSiteConfig(row)}
       />
     </Suspense>
   );

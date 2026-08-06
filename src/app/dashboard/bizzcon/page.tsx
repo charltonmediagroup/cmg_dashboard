@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import * as brandsRepo from "@/lib/repos/brands";
 import { getCache, cacheKeys, ttls } from "@/lib/cache";
 import { getEvents, type EventBrand } from "@/lib/sources/drupalEvents";
+import { manualBizzconEvents } from "@/lib/sources/manualEvents";
 import LoadingPage from "@/components/LoadingPage";
 import BizzconGridClient from "./BizzconGridClient";
 import { getTodaysBirthdaySlides } from "@/lib/birthdays/today";
@@ -18,11 +19,17 @@ async function loadEvents() {
       url: b.url!,
       image: b.image,
     }));
-  if (!sources.length) return [];
-  return getCache().getOrLoad(
-    cacheKeys.bizzconEvents(),
-    () => getEvents(sources),
-    { ttlMs: ttls.BIZZCON, staleMs: ttls.BIZZCON_STALE },
+  const scraped = sources.length
+    ? await getCache().getOrLoad(
+        cacheKeys.bizzconEvents(),
+        () => getEvents(sources),
+        { ttlMs: ttls.BIZZCON, staleMs: ttls.BIZZCON_STALE },
+      )
+    : [];
+  // Manual events are read straight from the DB (not cached) so admin edits
+  // show up immediately.
+  return [...scraped, ...manualBizzconEvents(list)].sort(
+    (a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
   );
 }
 

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import * as brandsRepo from "@/lib/repos/brands";
 import { getCache, cacheKeys, ttls } from "@/lib/cache";
 import { getAwards, type AwardsBrand } from "@/lib/sources/drupalAwards";
+import { manualAwards } from "@/lib/sources/manualEvents";
 import LoadingPage from "@/components/LoadingPage";
 import AwardsGridClient from "./AwardsGridClient";
 import { getTodaysBirthdaySlides } from "@/lib/birthdays/today";
@@ -13,11 +14,17 @@ async function loadAwards() {
   const sources: AwardsBrand[] = list
     .filter((b) => !!b.url)
     .map((b) => ({ brand: b.slug, name: b.displayName, url: b.url! }));
-  if (!sources.length) return [];
-  return getCache().getOrLoad(
-    cacheKeys.awardsList(),
-    () => getAwards(sources),
-    { ttlMs: ttls.AWARDS, staleMs: ttls.AWARDS_STALE },
+  const scraped = sources.length
+    ? await getCache().getOrLoad(
+        cacheKeys.awardsList(),
+        () => getAwards(sources),
+        { ttlMs: ttls.AWARDS, staleMs: ttls.AWARDS_STALE },
+      )
+    : [];
+  // Manual events are read straight from the DB (not cached) so admin edits
+  // show up immediately.
+  return [...scraped, ...manualAwards(list)].sort(
+    (a, b) => new Date(a.field_date).getTime() - new Date(b.field_date).getTime(),
   );
 }
 
