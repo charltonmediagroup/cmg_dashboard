@@ -62,7 +62,7 @@ function Row({ row }: { row: ClientBinding }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const spec = specFor(row.purpose);
+  const spec = specFor(row.purpose, row.departmentSlug);
 
   // Google Sheets: friendly fields.
   const initialSheets = {

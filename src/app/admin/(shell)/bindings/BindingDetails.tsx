@@ -1,6 +1,6 @@
 "use client";
 
-import { KIND_CONFIG, specFor } from "./bindingSpecs";
+import { KIND_CONFIG, specFor, type LayoutSpec } from "./bindingSpecs";
 
 export default function BindingDetails({
   departmentSlug,
@@ -13,7 +13,7 @@ export default function BindingDetails({
   dataSourceKind: string;
   config: Record<string, unknown>;
 }) {
-  const spec = specFor(purpose);
+  const spec = specFor(purpose, departmentSlug);
   const kindFields = KIND_CONFIG[dataSourceKind] ?? [];
   const spreadsheetId =
     typeof config.spreadsheetId === "string" ? config.spreadsheetId : "";
@@ -114,65 +114,96 @@ export default function BindingDetails({
         </Section>
       </div>
 
+      {spec?.configNotes && spec.configNotes.length > 0 && (
+        <ul className="flex flex-col gap-1 text-xs">
+          {spec.configNotes.map((n) => (
+            <li
+              key={n}
+              className="rounded border border-black/10 dark:border-white/10 px-3 py-2"
+            >
+              {n}
+            </li>
+          ))}
+        </ul>
+      )}
+
       {spec?.layout && (
         <Section title="Expected data structure">
-          {spec.layout.tabs && spec.layout.tabs.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs opacity-60">Tabs:</span>
-              {spec.layout.tabs.map((t) => (
-                <code
-                  key={t}
-                  className="text-xs rounded bg-black/[0.06] dark:bg-white/[0.08] px-1.5 py-0.5"
-                >
-                  {t}
-                </code>
-              ))}
+          <Layout layout={spec.layout} />
+          {spec.altLayout && (
+            <div className="flex flex-col gap-2 pt-2">
+              <p className="text-xs opacity-60">
+                This reader also accepts a second shape, and works out which one
+                it has from the heading row:
+              </p>
+              <Layout layout={spec.altLayout} />
             </div>
-          )}
-
-          {spec.layout.columns && spec.layout.columns.length > 0 && (
-            <div className="border border-black/10 dark:border-white/10 rounded overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-black/5 dark:bg-white/5">
-                  <tr className="text-left">
-                    {spec.layout.columns.some((c) => c.column) && (
-                      <th className="px-2 py-1.5 font-medium w-16">Column</th>
-                    )}
-                    <th className="px-2 py-1.5 font-medium">Holds</th>
-                    <th className="px-2 py-1.5 font-medium">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {spec.layout.columns.map((c) => (
-                    <tr
-                      key={c.name}
-                      className="border-t border-black/10 dark:border-white/10"
-                    >
-                      {spec.layout!.columns!.some((x) => x.column) && (
-                        <td className="px-2 py-1.5 font-mono font-medium">
-                          {c.column ?? ""}
-                        </td>
-                      )}
-                      <td className="px-2 py-1.5">{c.name}</td>
-                      <td className="px-2 py-1.5 opacity-60">{c.note ?? ""}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {spec.layout.notes && spec.layout.notes.length > 0 && (
-            <ul className="flex flex-col gap-1 text-xs opacity-70">
-              {spec.layout.notes.map((n) => (
-                <li key={n} className="flex gap-2">
-                  <span className="opacity-40">•</span>
-                  <span>{n}</span>
-                </li>
-              ))}
-            </ul>
           )}
         </Section>
+      )}
+    </div>
+  );
+}
+
+function Layout({ layout }: { layout: LayoutSpec }) {
+  const hasColumnLetters = layout.columns?.some((c) => c.column) ?? false;
+  return (
+    <div className="flex flex-col gap-2">
+      {layout.tabs && layout.tabs.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs opacity-60">Tabs:</span>
+          {layout.tabs.map((t) => (
+            <code
+              key={t}
+              className="text-xs rounded bg-black/[0.06] dark:bg-white/[0.08] px-1.5 py-0.5"
+            >
+              {t}
+            </code>
+          ))}
+        </div>
+      )}
+
+      {layout.columns && layout.columns.length > 0 && (
+        <div className="border border-black/10 dark:border-white/10 rounded overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead className="bg-black/5 dark:bg-white/5">
+              <tr className="text-left">
+                {hasColumnLetters && (
+                  <th className="px-2 py-1.5 font-medium w-20">Column</th>
+                )}
+                <th className="px-2 py-1.5 font-medium">Holds</th>
+                <th className="px-2 py-1.5 font-medium">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {layout.columns.map((c) => (
+                <tr
+                  key={c.name}
+                  className="border-t border-black/10 dark:border-white/10"
+                >
+                  {hasColumnLetters && (
+                    <td className="px-2 py-1.5 font-mono font-medium whitespace-nowrap">
+                      {c.column ?? ""}
+                    </td>
+                  )}
+                  <td className="px-2 py-1.5">{c.name}</td>
+                  <td className="px-2 py-1.5 opacity-60">{c.note ?? ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {layout.notes && layout.notes.length > 0 && (
+        <ul className="flex flex-col gap-1 text-xs opacity-70">
+          {layout.notes.map((n) => (
+            <li key={n} className="flex gap-2">
+              <span className="opacity-40">•</span>
+              <span>{n}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

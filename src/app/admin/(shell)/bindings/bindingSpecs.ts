@@ -32,13 +32,23 @@ export interface BindingSpec {
   readBy: string[];
   /** Null when nothing reads this purpose yet. */
   layout: LayoutSpec | null;
+  /** A second accepted layout, where the reader detects which one it has. */
+  altLayout?: LayoutSpec;
+  /** Extra requirements on the config fields for this binding. */
+  configNotes?: string[];
   /** Set when the purpose exists but no code consumes it. */
   unused?: string;
+  /**
+   * Per-department overrides. The same purpose can be read by different code
+   * per department — the two leaderboards share a purpose and agree on almost
+   * nothing else — so the panel must not show one department's layout for all.
+   */
+  variants?: Record<string, Partial<BindingSpec>>;
 }
 
 const AWARDS_LEADERBOARD: LayoutSpec = {
   notes: [
-    "First row is treated as headers; every row after it is one deal.",
+    "One row per deal. The first row is treated as headers.",
     "A row is skipped unless it has an award name, a person, and an amount above zero.",
     "The person is matched to a staff record through their name keys, so spelling variants still count.",
   ],
@@ -46,6 +56,40 @@ const AWARDS_LEADERBOARD: LayoutSpec = {
     { column: "A", name: "Award / event name" },
     { column: "B", name: "Person in charge", note: "\"c/o\" prefixes, bracketed notes and trailing tags are stripped" },
     { column: "E", name: "Amount (USD)", note: "$ and thousands separators are tolerated" },
+  ],
+};
+
+/**
+ * Bizzcon's reader accepts two shapes and picks between them by looking at the
+ * header row, so both are worth showing.
+ */
+const BIZZCON_PEOPLE_ROWS: LayoutSpec = {
+  notes: [
+    "One row per salesperson. Used when every column between the first and TOTAL is a quarter label.",
+    "Quarter headings may be written Q1…Q4 or \"1st Quarter\", \"2nd Quarter\", and so on.",
+    "A TOTAL column is used as the person's total when present; otherwise the quarters are added up.",
+    "Names are matched against the staff roster — anyone not recognised is left off the board rather than shown under a stray spelling.",
+    "A row whose first cell reads TOTAL is skipped, and blank amounts count as zero.",
+    "Only the range A1:J40 is read, so the board holds up to about 39 people and 9 columns.",
+  ],
+  columns: [
+    { column: "A", name: "PIC — salesperson's name" },
+    { column: "B–E", name: "Quarter amounts", note: "headed Q1, Q2, Q3, Q4" },
+    { column: "F", name: "Total", note: "optional; wins over the sum of the quarters when present" },
+  ],
+};
+
+const BIZZCON_PEOPLE_COLUMNS: LayoutSpec = {
+  notes: [
+    "One column per salesperson, used when the headings are names rather than quarters.",
+    "The header row carries the names, then a TOTAL column, and optionally one containing \"MONTHLY\".",
+    "Rows beneath are weeks; a row labelled TOTAL carries the running totals and a row labelled with a quarter carries that quarter's.",
+    "Only the range A1:J40 is read.",
+  ],
+  columns: [
+    { column: "A", name: "Row label", note: "a week, or TOTAL, or a quarter name" },
+    { column: "B…", name: "One column per salesperson" },
+    { column: "—", name: "TOTAL column", note: "found by its heading, not its position" },
   ],
 };
 
@@ -99,9 +143,23 @@ export const BINDING_SPECS: Record<string, BindingSpec> = {
   leaderboard: {
     label: "Leaderboard",
     summary: "Sales figures behind a department's leaderboard screen.",
-    usedBy: ["Awards / Bizzcon / Editorial leaderboard pages", "The rotating leaderboard on wall displays"],
-    readBy: ["src/app/api/leaderboard/[department]/route.ts", "src/app/api/leaderboard/bizzcon/route.ts"],
+    usedBy: ["The department's leaderboard page", "The rotating leaderboard on wall displays"],
+    readBy: ["src/app/api/leaderboard/[department]/route.ts"],
     layout: AWARDS_LEADERBOARD,
+    variants: {
+      bizzcon: {
+        label: "Leaderboard (Bizzcon)",
+        summary:
+          "Bizzcon sales figures. Bizzcon has its own reader and its own sheet shape — this is not the deal-per-row layout the other departments use.",
+        usedBy: ["Bizzcon → Leaderboard", "The rotating leaderboard on wall displays"],
+        readBy: ["src/app/api/leaderboard/bizzcon/route.ts"],
+        layout: BIZZCON_PEOPLE_ROWS,
+        altLayout: BIZZCON_PEOPLE_COLUMNS,
+        configNotes: [
+          "Needs a tab: set sheetName, or set gid and the tab name is looked up from it. Without one the leaderboard errors rather than showing an empty board.",
+        ],
+      },
+    },
   },
   ceo_invoice_register: {
     label: "CEO · Invoice register",
@@ -185,6 +243,16 @@ export const KIND_CONFIG: Record<string, { field: string; required?: boolean; no
   mongodb: [{ field: "(none)", note: "Uses the app's own database connection." }],
 };
 
-export function specFor(purpose: string): BindingSpec | null {
-  return BINDING_SPECS[purpose] ?? null;
+/**
+ * The spec for a binding, with any per-department override applied. Pass the
+ * department so a shared purpose doesn't show the wrong department's layout.
+ */
+export function specFor(
+  purpose: string,
+  departmentSlug?: string,
+): BindingSpec | null {
+  const base = BINDING_SPECS[purpose];
+  if (!base) return null;
+  const variant = departmentSlug ? base.variants?.[departmentSlug] : undefined;
+  return variant ? { ...base, ...variant } : base;
 }
