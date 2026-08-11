@@ -184,6 +184,25 @@ export const BINDING_SPECS: Record<string, BindingSpec> = {
     unused:
       "No page reads this today — the CEO money dashboards run off the invoice register instead. Safe to leave unset.",
   },
+  ceo_short_form_videos: {
+    label: "CEO · Short Form Videos",
+    summary: "The short-form-video status breakdown and total for the CEO Sales/Commercial board.",
+    usedBy: ["CEO → Short Form Videos"],
+    readBy: ["src/lib/ceo-sfv/sheet.ts"],
+    layout: {
+      tabs: ["2026 summary"],
+      columns: [
+        { column: "A", name: "Status", note: "One row per status; a STATUS header row is ignored." },
+        { column: "B", name: "Count", note: "Number of videos in that status." },
+        { column: "D", name: "Summary label", note: "TOTAL VIDEOS / LAST UPDATED sit in this column." },
+        { column: "E", name: "Summary value", note: "The total (a number) and the last-updated timestamp." },
+      ],
+      notes: [
+        "The status breakdown is columns A/B; the side SUMMARY block is columns D/E.",
+        "TOTAL VIDEOS falls back to the sum of the status counts when it is missing.",
+      ],
+    },
+  },
   sponsorship: {
     label: "Sponsorship",
     summary: "Reserved for sponsorship figures.",
