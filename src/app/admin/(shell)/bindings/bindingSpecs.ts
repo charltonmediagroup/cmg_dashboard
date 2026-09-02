@@ -184,6 +184,59 @@ export const BINDING_SPECS: Record<string, BindingSpec> = {
     unused:
       "No page reads this today — the CEO money dashboards run off the invoice register instead. Safe to leave unset.",
   },
+  ceo_short_form_videos: {
+    label: "CEO · Short Form Videos",
+    summary: "The short-form-video status breakdown and total for the CEO Sales/Commercial board.",
+    usedBy: ["CEO → Short Form Videos"],
+    readBy: ["src/lib/ceo-sfv/sheet.ts"],
+    layout: {
+      tabs: ["2026 summary"],
+      columns: [
+        { column: "A", name: "Status", note: "One row per status; a STATUS header row is ignored." },
+        { column: "B", name: "Count", note: "Number of videos in that status." },
+        { column: "D", name: "Summary label", note: "TOTAL VIDEOS / LAST UPDATED sit in this column." },
+        { column: "E", name: "Summary value", note: "The total (a number) and the last-updated timestamp." },
+      ],
+      notes: [
+        "The status breakdown is columns A/B; the side SUMMARY block is columns D/E.",
+        "TOTAL VIDEOS falls back to the sum of the status counts when it is missing.",
+      ],
+    },
+  },
+  ceo_client_deliverables: {
+    label: "CEO · Client Deliverables Overdue",
+    summary: "Per-campaign article deliverables and their deadlines, for the CEO overdue board.",
+    usedBy: ["CEO → Client Deliverables Overdue"],
+    readBy: ["src/lib/ceo-deliverables/deliverables.ts"],
+    layout: {
+      tabs: ["One tab per awards campaign; only 2026 tabs are read."],
+      columns: [
+        { column: "A", name: "Status", note: "Deliverables run from row 18 down; Done / Cancelled / Vetting / …" },
+        { column: "B", name: "Deadline", note: "The campaign's publication date sits in B17 (e.g. 'March 27')." },
+      ],
+      notes: [
+        "A deliverable is overdue when its campaign deadline (B17) has passed and its status is not 'Done'.",
+        "'Cancelled' rows drop out of the totals; every other non-'Done' status is outstanding.",
+      ],
+    },
+  },
+  ceo_video_interviews: {
+    label: "CEO · Video Interview Progress Tracker",
+    summary: "Per-campaign award video interviews and their production status, for the CEO progress tracker.",
+    usedBy: ["CEO → Video Interview Progress Tracker"],
+    readBy: ["src/lib/ceo-video-interviews/interviews.ts"],
+    layout: {
+      tabs: ["One tab per awards campaign; the READ ME, Timeline and Claude Cache tabs are skipped."],
+      columns: [
+        { column: "A", name: "Status", note: "Interviews run from row 5 down; Published / Approved / For client approval / …" },
+        { column: "D", name: "Client Name", note: "A row is a real interview only when column D names a client." },
+      ],
+      notes: [
+        "'Published' and 'Approved' count as complete; every other live status is in production.",
+        "'Cancelled' rows drop out of the totals.",
+      ],
+    },
+  },
   sponsorship: {
     label: "Sponsorship",
     summary: "Reserved for sponsorship figures.",
