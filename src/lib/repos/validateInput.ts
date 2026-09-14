@@ -22,6 +22,7 @@ const IDENTIFIER_FIELDS: Record<string, string[]> = {
   "saved-references": ["id"],
   "page-settings": ["pageKey"],
   birthdays: ["id"],
+  "custom-pages": ["id"],
   holidays: ["date"],
 };
 

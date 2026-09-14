@@ -19,6 +19,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     items: [
       { href: "/admin/birthdays", label: "Birthdays" },
+      { href: "/admin/custom-pages", label: "Custom pages" },
       { href: "/admin/holidays", label: "Holidays" },
     ],
   },

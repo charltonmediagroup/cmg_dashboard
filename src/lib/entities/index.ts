@@ -12,4 +12,5 @@ export * from "./cacheEntry";
 export * from "./activityLog";
 export * from "./pageSetting";
 export * from "./birthday";
+export * from "./customPage";
 export * from "./holiday";

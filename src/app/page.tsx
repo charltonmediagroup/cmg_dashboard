@@ -1,6 +1,7 @@
 import Link from "next/link";
 import * as brandsRepo from "@/lib/repos/brands";
 import * as quickLinksRepo from "@/lib/repos/quickLinks";
+import * as customPagesRepo from "@/lib/repos/customPages";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,10 @@ export default async function Home() {
   const editorialBrands = allBrands.filter((b) => b.departments?.includes("editorial"));
   // A quick-links failure must not take the whole home page down — the links
   // are an extra, the dashboard index is the point of the page.
-  const quickLinks = await quickLinksRepo.listVisible().catch(() => []);
+  const [quickLinks, customPages] = await Promise.all([
+    quickLinksRepo.listVisible().catch(() => []),
+    customPagesRepo.listForHome().catch(() => []),
+  ]);
 
   return (
     <div className="bg-transparent min-h-screen flex items-start sm:items-center justify-center flex-col gap-6 px-4 py-10 text-lg">
@@ -67,19 +71,41 @@ export default async function Home() {
           ))}
         </div>
 
-        {quickLinks.length > 0 && (
+        {(quickLinks.length > 0 || customPages.length > 0) && (
           <div className="flex flex-col gap-1">
-            <span className="font-semibold opacity-60 text-sm uppercase tracking-wide mb-1">
-              Quick links
-            </span>
-            {quickLinks.map((l) => (
-              <QuickLink
-                key={l.id}
-                label={l.label}
-                href={l.href}
-                description={l.description}
-              />
-            ))}
+            {quickLinks.length > 0 && (
+              <>
+                <span className="font-semibold opacity-60 text-sm uppercase tracking-wide mb-1">
+                  Quick links
+                </span>
+                {quickLinks.map((l) => (
+                  <QuickLink
+                    key={l.id}
+                    label={l.label}
+                    href={l.href}
+                    description={l.description}
+                  />
+                ))}
+              </>
+            )}
+            {customPages.length > 0 && (
+              <>
+                <span
+                  className={`font-semibold opacity-60 text-sm uppercase tracking-wide mb-1 ${
+                    quickLinks.length > 0 ? "mt-4" : ""
+                  }`}
+                >
+                  Pages
+                </span>
+                {customPages.map((p) => (
+                  <QuickLink
+                    key={p.id}
+                    label={p.title}
+                    href={`/custom/${encodeURIComponent(p.id)}`}
+                  />
+                ))}
+              </>
+            )}
           </div>
         )}
       </div>

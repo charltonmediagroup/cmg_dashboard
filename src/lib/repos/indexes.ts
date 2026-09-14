@@ -63,6 +63,9 @@ export const indexSpecs: IndexSpec[] = [
   { collection: "birthdays", keys: { birthMonth: 1, birthDay: 1 } },
   { collection: "birthdays", keys: { active: 1 } },
 
+  { collection: "custom_pages", keys: { id: 1 }, options: { unique: true } },
+  { collection: "custom_pages", keys: { order: 1 } },
+
   { collection: "holidays", keys: { date: 1 }, options: { unique: true } },
 ];
 
